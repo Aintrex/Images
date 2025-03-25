@@ -23,11 +23,16 @@ namespace Imagesss
             
             InitializeComponent();
             image = img;
-           // pictureBox1.Image = image;
-            cubicpix = CubicInter();
-           ApplyGradationTransformation();
-            DrawHistogram();
-            DrawCurve();
+            // pictureBox1.Image = image;
+            if (LoadPointsFromFile())
+            {
+                this.Show();
+                cubicpix = CubicInter();
+                ApplyGradationPreobr();
+                DrawHistogram();
+                DrawCurve();
+            }
+            else { this.Close();  }
         }
         
         private void DrawHistogram()
@@ -88,7 +93,7 @@ namespace Imagesss
 
             pictureBox3.Image = curveBitmap;
         }
-        private void ApplyGradationTransformation()
+        private void ApplyGradationPreobr()
         {
             if (points.Count < 2) return;
 
@@ -119,8 +124,6 @@ namespace Imagesss
         }
         private float[] CubicInter()
         {
-            LoadPointsFromFile("points1.txt");
-            points = points.OrderBy(p => p.X).ToList();
             int n = points.Count;
             float[] x = points.Select(p => p.X).ToArray();
             float[] y = points.Select(p => p.Y).ToArray();
@@ -187,25 +190,32 @@ namespace Imagesss
             }
             return x.Length - 2;
         }
-        private void LoadPointsFromFile(string filePath)
+        private bool LoadPointsFromFile()
         {
-            if (!File.Exists(filePath)) return;
-
-            points.Clear();
-            foreach (var line in File.ReadLines(filePath))
+            using (OpenFileDialog ofd = new OpenFileDialog())
             {
-                var parts = line.Split(' ');
-                if (parts.Length == 2 && float.TryParse(parts[0], out float x) && float.TryParse(parts[1], out float y))
+                ofd.InitialDirectory=Directory.GetCurrentDirectory();
+                ofd.Filter = "Texts (txt) | *.txt";
+                ofd.Multiselect = false;    
+                if (ofd.ShowDialog() == DialogResult.OK)
                 {
-                    points.Add(new PointF(x, y));
-                }
-                else
-                {
-                    MessageBox.Show("Incorrect points");
-                    return;
+                    foreach (var line in File.ReadLines(ofd.FileName))
+                    {
+                        var parts = line.Split(' ');
+                        if (parts.Length == 2 && float.TryParse(parts[0], out float x) && float.TryParse(parts[1], out float y))
+                        {
+                            points.Add(new PointF(x,y));
+                        }
+                        else
+                        {
+                            MessageBox.Show("Inccorrect points");
+                                return false;
+                        }
+                    }
                 }
             }
-            points = points.OrderBy(p => p.X).ToList();
+            points=points.OrderBy(p=> p.X).ToList();
+            return true;
         }
     }
 }

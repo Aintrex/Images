@@ -118,7 +118,7 @@ namespace Imagesss
             Bitmap img = new Bitmap(picturebox.Image);
 
             HistogramForm histogramForm = new HistogramForm(img);
-            histogramForm.Show();
+            
         }
         private static Bitmap Resize(Bitmap img, int nw, int nh)
         {
