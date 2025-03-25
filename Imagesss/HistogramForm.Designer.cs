@@ -28,12 +28,46 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Text = "Form2";
+            pictureBox1 = new PictureBox();
+            pictureBox2 = new PictureBox();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
+            SuspendLayout();
+            // 
+            // pictureBox1
+            // 
+            pictureBox1.Location = new Point(409, 12);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(379, 289);
+            pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureBox1.TabIndex = 0;
+            pictureBox1.TabStop = false;
+            // 
+            // pictureBox2
+            // 
+            pictureBox2.Location = new Point(12, 307);
+            pictureBox2.Name = "pictureBox2";
+            pictureBox2.Size = new Size(776, 131);
+            pictureBox2.TabIndex = 1;
+            pictureBox2.TabStop = false;
+            // 
+            // HistogramForm
+            // 
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(800, 450);
+            Controls.Add(pictureBox2);
+            Controls.Add(pictureBox1);
+            Name = "HistogramForm";
+            Text = "Form2";
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
+            ResumeLayout(false);
         }
 
         #endregion
+
+        private PictureBox pictureBox1;
+        private PictureBox pictureBox2;
     }
 }

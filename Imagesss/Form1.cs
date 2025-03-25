@@ -58,7 +58,7 @@ namespace Imagesss
 
         private void AddLayerToUI(ImgLayer layer)
         {
-            Panel panel = new Panel {Width = 230, Height = 300, Dock = DockStyle.Top, BorderStyle = BorderStyle.FixedSingle };
+            Panel panel = new Panel {Width = 230, Height = 350, Dock = DockStyle.Top, BorderStyle = BorderStyle.FixedSingle };
 
             PictureBox pictureBox = new PictureBox
             {
@@ -105,8 +105,8 @@ namespace Imagesss
             Button histogramButton = new Button
             {
                 Text = "Show Histogram",
-                Location = new Point(5, 260),
-                Width = 100
+                Location = new Point(5, 300),
+                Width = 200
             };
             histogramButton.Click += (sender, e) => HistogramWindow(sender, e, pictureBox);
 
@@ -237,13 +237,14 @@ namespace Imagesss
         private void AddImage_Click(object sender, EventArgs e)
         {
             AddImg();
+            ImgAdapt();
         }
 
         private void proButton_Click(object sender, EventArgs e)
         {
             int k = layers.Count - 1;
            // MessageBox.Show($"Перед операцией adapt: ch1 = {layers[k].ChannelList.SelectedItem?.ToString()}");
-            ImgAdapt();
+            
            // MessageBox.Show($"Перед операцией adapt: ch1 = {layers[k].Opacity}");
             ProceedOperation();
         }
