@@ -61,7 +61,7 @@
             proButton.Name = "proButton";
             proButton.Size = new Size(222, 54);
             proButton.TabIndex = 3;
-            proButton.Text = "Proceed Operation";
+            proButton.Text = "Calculate";
             proButton.UseVisualStyleBackColor = true;
             proButton.Click += proButton_Click;
             // 
