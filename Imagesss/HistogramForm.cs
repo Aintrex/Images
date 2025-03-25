@@ -16,17 +16,18 @@ namespace Imagesss
     public partial class HistogramForm : Form
     {
         private Bitmap image;
-        private PictureBox pictureBox;
-       // private Chart histogramChart;
-        private TextBox transformationFunctionTextBox;
         private List<PointF> points = new List<PointF>();
+        float[] cubicpix = new float[256];
         public HistogramForm(Bitmap img)
         {
             
             InitializeComponent();
             image = img;
-            pictureBox1.Image = image;
+           // pictureBox1.Image = image;
+            cubicpix = CubicInter();
+           ApplyGradationTransformation();
             DrawHistogram();
+            DrawCurve();
         }
         
         private void DrawHistogram()
@@ -36,6 +37,7 @@ namespace Imagesss
             int h = image.Height;
             int hh = pictureBox2.Height;
             int ww = pictureBox2.Width;
+
             Bitmap histogram = new Bitmap(ww,hh );
             for (int y = 0; y < h; y++)
             {
@@ -63,10 +65,62 @@ namespace Imagesss
             }
             pictureBox2.Image = histogram;
         }
+        private void DrawCurve()
+        {
+            if (points.Count < 2) return;
+
+            Bitmap curveBitmap = new Bitmap(pictureBox3.Width, pictureBox3.Height);
+            using (Graphics g = Graphics.FromImage(curveBitmap))
+            {
+                g.Clear(Color.White);
+                Pen pen = new Pen(Color.Blue, 2);
+
+                PointF[] curvePoints = new PointF[256];
+
+                
+                for (int i = 0; i < 256; i++)
+                {
+                    curvePoints[i] = new PointF(i * (curveBitmap.Width / 256f), curveBitmap.Height - cubicpix[i] * (curveBitmap.Height / 255f));
+                }
+
+                g.DrawCurve(pen, curvePoints);
+            }
+
+            pictureBox3.Image = curveBitmap;
+        }
+        private void ApplyGradationTransformation()
+        {
+            if (points.Count < 2) return;
+
+            Bitmap transformedImage = new Bitmap(image.Width, image.Height);
+
+            for (int y = 0; y < image.Height; y++)
+            {
+                for (int x = 0; x < image.Width; x++)
+                {
+                    var pix = image.GetPixel(x, y);
+
+                    
+                    int r = (int)(cubicpix[pix.R]);  
+                    int g = (int)(cubicpix[pix.G]);  
+                    int b = (int)(cubicpix[pix.B]);  
+
+                   
+                    r = Math.Max(0, Math.Min(255, r));
+                    g = Math.Max(0, Math.Min(255, g));
+                    b = Math.Max(0, Math.Min(255, b));
+                    transformedImage.SetPixel(x, y, Color.FromArgb(r, g, b));
+                }
+            }
+
+            // Обновление PictureBox с преобразованным изображением
+            pictureBox1.Image = transformedImage;
+            image = transformedImage;
+        }
         private float[] CubicInter()
         {
-            LoadPointsFromFile("points.txt");
-            points.Sort();
+            LoadPointsFromFile("points1.txt");
+            points = points.OrderBy(p => p.X).ToList();
             int n = points.Count;
             float[] x = points.Select(p => p.X).ToArray();
             float[] y = points.Select(p => p.Y).ToArray();
@@ -104,7 +158,6 @@ namespace Imagesss
                 c[i] = (beta[i] - h[i] * c[i + 1]) / alpha[i];
 
             c[0] = 0;
-            c[n] = 0;
 
             for (int i = 0; i < n - 1; i++)
             {
@@ -112,17 +165,17 @@ namespace Imagesss
                 b[i] = (y[i + 1] - y[i]) / h[i] - (h[i] * (c[i + 1] + 2 * c[i])) / 6;
                 d[i] = (c[i + 1] - c[i]) / h[i];
             }
-            float[] lookup = new float[256];
+            float[] cubicpix = new float[256];
 
             for (int i = 0; i < 256; i++)
             {
                 int segment = FindSegment(x, i);
                 float xi = i - x[segment];
-                lookup[i] = a[segment] + b[segment] * xi + c[segment] / 2 * xi * xi + d[segment] / 6 * xi * xi * xi;
-                lookup[i] = Math.Max(0, Math.Min(255, lookup[i]));
+                cubicpix[i] = a[segment] + b[segment] * xi + c[segment] / 2 * xi * xi + d[segment] / 6 * xi * xi * xi;
+                cubicpix[i] = Math.Max(0, Math.Min(255, cubicpix[i]));
             }
 
-            return lookup;
+            return cubicpix;
         }
 
         private int FindSegment(float[] x, float value)
@@ -145,6 +198,11 @@ namespace Imagesss
                 if (parts.Length == 2 && float.TryParse(parts[0], out float x) && float.TryParse(parts[1], out float y))
                 {
                     points.Add(new PointF(x, y));
+                }
+                else
+                {
+                    MessageBox.Show("Incorrect points");
+                    return;
                 }
             }
             points = points.OrderBy(p => p.X).ToList();

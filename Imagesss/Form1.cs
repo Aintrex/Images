@@ -27,32 +27,26 @@ namespace Imagesss
 
         private void AddImg()
         {
-            using OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
-            openFileDialog.Filter = "Images (png, jpg, bmp) |*.png;*.jpg;*.bmp;|All files (*.*)|*.*\"";
-            openFileDialog.Multiselect = true;
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                foreach (var file in openFileDialog.FileNames)
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            { 
+                openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
+                openFileDialog.Filter = "Images (png, jpg, bmp) |*.png;*.jpg;*.bmp;|All files (*.*)|*.*\"";
+                openFileDialog.Multiselect = true;
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    Bitmap img = new Bitmap(file);
-                    string imgname = Path.GetFileNameWithoutExtension(file);
-                    if (imgname.Length > 15)
+                    foreach (var file in openFileDialog.FileNames)
                     {
-                        imgname = imgname.Substring(0, 12) + "...";
+                        Bitmap img = new Bitmap(file);
+                        string imgname = Path.GetFileNameWithoutExtension(file);
+                        if (imgname.Length > 15)
+                        {
+                            imgname = imgname.Substring(0, 12) + "...";
+                        }
+                        var lr = new ImgLayer(img, imgname);
+                        layers.Add(lr);
+                        AddLayerToUI(lr);
                     }
-                    var lr = new ImgLayer(img, imgname);
-                    layers.Add(lr);
-                    AddLayerToUI(lr);
                 }
-                ////LayersBox.Items.Add(imgname);
-                //Bitmap thumbnail = new Bitmap(img, new Size(50, 50));
-                //imageList.Images.Add(imgname, thumbnail);
-
-                //// Добавляем элемент в ListView
-                //ListViewItem item = new ListViewItem { Text = imgname, ImageIndex = imageList.Images.Count - 1 };
-                //layersListView.Items.Add(item); 952, 243
-                //Redraw();
             }
         }
 
