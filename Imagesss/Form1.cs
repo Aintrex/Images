@@ -219,15 +219,15 @@ namespace Imagesss
                 byte g2 = resultData[index + 1];
                 byte r2=resultData[index + 2];
 
-                byte r = Operations((byte)r1, r2, op);
-                byte g = Operations((byte)g1, g2, op);
-                byte b = Operations((byte)b1, b2, op);
+                byte r = Operations((byte)(r1*opacity), r2, op);
+                byte g = Operations((byte)(g1 * opacity), g2, op);
+                byte b = Operations((byte)(b1 * opacity), b2, op);
 
 
                 resultData[index] = b;
                 resultData[index+1] = g;
                 resultData[index+2] = r;
-                resultData[index + 3] = (byte)(255*opacity);
+                resultData[index + 3] = 255; //(byte)(255*opacity);
             });
         }
         private static byte[] GetImgBytes(Bitmap img)
