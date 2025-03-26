@@ -1,10 +1,12 @@
 using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,7 +16,7 @@ using ImgLyr;
 
 namespace Imagesss
 {
-
+    
 
     public partial class Form1 : Form
     {
@@ -23,7 +25,7 @@ namespace Imagesss
         {
             InitializeComponent();
         }
-
+       
 
         private void AddImg()
         {
@@ -48,6 +50,8 @@ namespace Imagesss
                     }
                 }
             }
+            ImgAdapt();
+            ProceedOperation();
         }
 
         private void AddLayerToUI(ImgLayer layer)
@@ -64,12 +68,29 @@ namespace Imagesss
             };
 
             Label label = new Label { Text = layer.Name, AutoSize = true, Location = new Point(5, 185) };
-
-            layer.ChannelList.Location = new Point(5, 210);
-            layer.ChannelList.Width = 60;
-
-            layer.OperList.Location = new Point(80, 210);
-            layer.OperList.Width = 100;
+            
+            ComboBox ChannelList = new ComboBox();
+            ChannelList.DropDownStyle = ComboBoxStyle.DropDownList;
+            ChannelList.Items.AddRange(new string[] { "RGB", "R", "G", "B", "RG", "RB", "GB" });
+            ChannelList.SelectedIndex = 0;
+            ChannelList.SelectedIndexChanged += (s, e) =>
+            {
+                 layer.UpdChannel(ChannelList.SelectedItem.ToString());
+                ProceedOperation();
+            };
+            ChannelList.Location = new Point(5, 210);
+            ChannelList.Width = 60;
+            ComboBox OperList = new ComboBox();
+            OperList.DropDownStyle = ComboBoxStyle.DropDownList;
+            OperList.Items.AddRange(new string[] { "No", "Summ", "Mult", "Max", "Min", "Avg" });
+            OperList.SelectedIndex = 0;
+            OperList.SelectedIndexChanged += (s, e) =>
+            {
+                layer.UpdOp( OperList.SelectedItem.ToString());
+                ProceedOperation();
+            };
+            OperList.Location = new Point(80, 210);
+            OperList.Width = 100;
 
             TrackBar opacityTrackBar = new TrackBar
             {
@@ -94,6 +115,8 @@ namespace Imagesss
                 int opacity = opacityTrackBar.Value;
                 layer.Opacity = opacity / 100.0f; 
                 opacityLabel.Text = $"{opacity}%";
+                ProceedOperation();
+                //MessageBox.Show($"ѕрозрачность: {layer.Opacity}%");
             };
 
             Button histogramButton = new Button
@@ -106,8 +129,8 @@ namespace Imagesss
 
             panel.Controls.Add(pictureBox);
             panel.Controls.Add(label);
-            panel.Controls.Add(layer.ChannelList);
-            panel.Controls.Add(layer.OperList);
+            panel.Controls.Add(ChannelList);
+            panel.Controls.Add(OperList);
             panel.Controls.Add(opacityTrackBar);
             panel.Controls.Add(opacityLabel);
             panel.Controls.Add(histogramButton);
@@ -152,61 +175,110 @@ namespace Imagesss
             }
         }
         Bitmap svimg = default;
-        private void ProceedOperation()
+        public void ProceedOperation()
         {
             //  Bitmap res = new Bitmap(pictureBox1.Width, pictureBox1.Height);
             Bitmap res = new Bitmap(1920, 1080);
             Graphics.FromImage(res).Clear(Color.Black);
-            for (int k = layers.Count - 1; k >= 0; k--)
+            
+            int w = layers[0].Image.Width;
+            int h = layers[0].Image.Height;
+            byte[] resb = new byte[w*h*4];// *4 так как каждый пиксель=4 байта
+           // for (int k = layers.Count - 1; k >= 0; k--)
+           foreach (var layer in layers.AsEnumerable().Reverse())
             {
-                var Opp = layers[k].Op;
-                int w = layers[0].Image.Width;
-                int h = layers[0].Image.Height;
-                var img1=layers[k].Image;
-                var img2 = res;
-                for (int i = 0; i < h; i++)
-                {
-                    for (int j = 0; j < w; j++)
-                    {
-                        Color pix1 = img1.GetPixel(j, i);
-                        Color pix2 = img2.GetPixel(j, i);
-
-                        string ch = layers[k].Channel;
-                        pix1 = Channels(ch, pix1);
-                       // pix1 = Color.FromArgb((int)(pix1.A * layers[k].Opacity), pix1.R, pix1.G, pix1.B);
-                        var r = Operations((int)(pix1.R * layers[k].Opacity), pix2.R, Opp);
-                        var g = Operations((int)(pix1.G * layers[k].Opacity), pix2.G, Opp);
-                        var b = Operations((int)(pix1.B * layers[k].Opacity), pix2.B, Opp);
-                        res.SetPixel(j, i, Color.FromArgb(r, g, b));
-                        svimg = res;
-                    }
-                }
+                byte[] layb = GetImgBytes(layer.Image);
+                float opacity = layer.Opacity;
+                var op = layer.Op;
+                var ch = layer.Channel;
+                ApplyLayer(resb, layb, w, h, opacity, op, ch);
             }
+           SetImgBytes(res, resb);
+            svimg = res;
             pictureBox1.Image = res;
             
         }
-        private static Color Channels(string ch, Color pix)
+        protected void ApplyLayer(byte[] resultData, byte[] layerData, int w, int h, float opacity, string op, string ch)
         {
-            return ch switch
+            int l = w * h*4;
+            Parallel.For(0, l/4, i =>
             {
-                "R" => Color.FromArgb(pix.R, 0, 0),
-                "G" => Color.FromArgb(0, pix.G, 0),
-                "B" => Color.FromArgb(0, 0, pix.B),
-                "RG" => Color.FromArgb(pix.R, pix.G, 0),
-                "RB" => Color.FromArgb(pix.R, 0, pix.B),
-                "GB" => Color.FromArgb(0, pix.G, pix.B),
-                _ => pix
-            };
+                int index = i * 4;// оп€ть же, пиксель 4 байта 0 1 2 3 дл€ нулевого. ’ранитс€ BGRA, а не RGBA, поэтому такие индексы)
+                byte b1 = layerData[index];
+                byte g1 = layerData[index + 1];
+                byte r1 = layerData[index + 2];
+
+                Channels(ch, ref r1, ref g1, ref b1);
+
+                byte b2= resultData[index];
+                byte g2 = resultData[index + 1];
+                byte r2=resultData[index + 2];
+
+                byte r = Operations((byte)r1, r2, op);
+                byte g = Operations((byte)g1, g2, op);
+                byte b = Operations((byte)b1, b2, op);
+
+
+                resultData[index] = b;
+                resultData[index+1] = g;
+                resultData[index+2] = r;
+                resultData[index + 3] = (byte)(255*opacity);
+            });
         }
-        private static int Operations(int p1, int p2, string op)
+        private static byte[] GetImgBytes(Bitmap img)
+        {
+            byte[] byts = new byte[img.Width * img.Height*4];
+            var data = img.LockBits(new Rectangle(0,0,img.Width,img.Height),
+                ImageLockMode.ReadOnly,
+                img.PixelFormat);
+            Marshal.Copy(data.Scan0, byts, 0, byts.Length);
+            img.UnlockBits(data);
+            return byts;
+        }
+
+        private static void SetImgBytes(Bitmap img, byte[] bytes)
+        {
+            var data = img.LockBits(new Rectangle(0,0,img.Width,img.Height),
+                ImageLockMode.ReadOnly,
+                img.PixelFormat);
+            Marshal.Copy(bytes, 0, data.Scan0, bytes.Length);
+            img.UnlockBits(data);
+        }
+        private static void Channels(string ch, ref byte r, ref byte g, ref byte b)
+        {
+            switch (ch)
+            {
+                case "R":
+                    g = 0; b = 0;
+                    break;
+                case "G":
+                    r = 0; b = 0;
+                    break;
+                case "B":
+                    r = 0; g = 0;
+                    break;
+                case "RG":
+                    b = 0;
+                    break;
+                case "RB":
+                    g = 0;
+                    break;
+                case "GB":
+                    r = 0;
+                    break;
+                default:
+                    break;
+            }
+        }
+        private static byte Operations(byte p1, byte p2, string op)
         {
             return op switch
             {
-                "Summ" => Math.Min(255, p1 + p2),
-                "Mult" => (p1 * p2) / 255,
-                "Max" => Math.Max(p1, p2),
-                "Min" => Math.Min(p1, p2),
-                "Avg" => (p1 + p2) / 2,
+                "Summ" => (byte)Math.Min(255, p1 + p2),
+                "Mult" => (byte)((p1 * p2) / 255),
+                "Max" => (byte)Math.Max(p1, p2),
+                "Min" => (byte)Math.Min(p1, p2),
+                "Avg" => (byte)((p1 + p2) / 2),
                 _ => p2
             };
 
@@ -231,7 +303,7 @@ namespace Imagesss
         private void AddImage_Click(object sender, EventArgs e)
         {
             AddImg();
-            ImgAdapt();
+           // ImgAdapt();
         }
 
         private void proButton_Click(object sender, EventArgs e)
