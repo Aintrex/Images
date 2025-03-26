@@ -19,7 +19,7 @@ namespace ImgLyr
             Image = img;
             Name = name;
             Channel = "RGB";
-            Op = "No";
+            Op = "Summ";
             Opacity = 1.0f;
            
             

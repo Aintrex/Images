@@ -36,8 +36,11 @@ namespace Imagesss
                 openFileDialog.Multiselect = true;
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
+                    if (openFileDialog.FileName == null)
+                        return;
                     foreach (var file in openFileDialog.FileNames)
                     {
+                       
                         Bitmap img = new Bitmap(file);
                         string imgname = Path.GetFileNameWithoutExtension(file);
                         if (imgname.Length > 15)
@@ -48,10 +51,12 @@ namespace Imagesss
                         layers.Add(lr);
                         AddLayerToUI(lr);
                     }
+                    ImgAdapt();
+                    ProceedOperation();
                 }
+                
             }
-            ImgAdapt();
-            ProceedOperation();
+           
         }
 
         private void AddLayerToUI(ImgLayer layer)
