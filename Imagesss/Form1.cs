@@ -25,6 +25,7 @@ namespace Imagesss
         {
             InitializeComponent();
         }
+
        
 
         private void AddImg()
@@ -61,12 +62,12 @@ namespace Imagesss
 
         private void AddLayerToUI(ImgLayer layer)
         {
-            Panel panel = new Panel {Width = 230, Height = 350, Dock = DockStyle.Top, BorderStyle = BorderStyle.FixedSingle };
+            Panel panel = new Panel {Width = 210, Height = 350, Dock = DockStyle.Top, BorderStyle = BorderStyle.FixedSingle };
 
             PictureBox pictureBox = new PictureBox
             {
-                Image = new Bitmap(layer.Image, new Size(220, 180)),
-                Size = new Size(220, 180),
+                Image = new Bitmap(layer.Image, new Size(200, 180)),
+                Size = new Size(200, 180),
                 Location = new Point(5, 5),
                 SizeMode = PictureBoxSizeMode.StretchImage,
                 BorderStyle = BorderStyle.FixedSingle
@@ -88,7 +89,7 @@ namespace Imagesss
             ComboBox OperList = new ComboBox();
             OperList.DropDownStyle = ComboBoxStyle.DropDownList;
             OperList.Items.AddRange(new string[] { "No", "Summ", "Mult", "Max", "Min", "Avg" });
-            OperList.SelectedIndex = 0;
+            OperList.SelectedIndex = 1;
             OperList.SelectedIndexChanged += (s, e) =>
             {
                 layer.UpdOp( OperList.SelectedItem.ToString());
@@ -132,6 +133,13 @@ namespace Imagesss
             };
             histogramButton.Click += (sender, e) => HistogramWindow(sender, e, pictureBox);
 
+            Button binButton = new Button
+            {
+                Text = "Show binarization",
+                Location=new Point(5, 330),
+                Width = 200
+            };
+            binButton.Click += (sender, e) => BinWindow(sender, e, pictureBox);
             panel.Controls.Add(pictureBox);
             panel.Controls.Add(label);
             panel.Controls.Add(ChannelList);
@@ -139,14 +147,27 @@ namespace Imagesss
             panel.Controls.Add(opacityTrackBar);
             panel.Controls.Add(opacityLabel);
             panel.Controls.Add(histogramButton);
+            panel.Controls.Add(binButton);
             lyrBox2.Controls.Add(panel);
         }
-        private void HistogramWindow(object sender, EventArgs e, PictureBox picturebox)
+        private void BinWindow(object sender, EventArgs e, PictureBox pb)
+        {
+            Bitmap img = new Bitmap(pb.Image);
+            
+                this.Hide();
+
+               
+                BinarForm binarForm = new BinarForm(img);
+
+                binarForm.FormClosed += (s, args) => this.Show();
+        }
+         private void  HistogramWindow(object sender, EventArgs e, PictureBox picturebox)
         {
             Bitmap img = new Bitmap(picturebox.Image);
-
+            this.Hide();
             HistogramForm histogramForm = new HistogramForm(img);
-            
+            histogramForm.FormClosed += (s, args) => this.Show();
+            img.Dispose();
         }
         private static Bitmap Resize(Bitmap img, int nw, int nh)
         {
