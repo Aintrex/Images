@@ -9,6 +9,7 @@ namespace ImgLyr
     public class ImgLayer
     {
         public Bitmap Image { get; set; }
+        public Bitmap AdaptedImg { get; set; }
         public string Name { get; set; }
         public string Channel { get; set; }
         public string Op {  get; set; }

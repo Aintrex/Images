@@ -37,12 +37,11 @@
             // 
             comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox1.FormattingEnabled = true;
-            comboBox1.Items.AddRange(new object[] { "No", "Niblack", "Sauvola", "Wolf", "Bradley-Roth" });
+            comboBox1.Items.AddRange(new object[] { "No", "Gavrilov", "Niblack", "Sauvol", "Wolf", "Bradley-Roth" });
             comboBox1.Location = new Point(12, 12);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(233, 23);
             comboBox1.TabIndex = 0;
-
             // 
             // pictureBox1
             // 

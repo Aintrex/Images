@@ -31,6 +31,7 @@
             pictureBox1 = new PictureBox();
             pictureBox2 = new PictureBox();
             pictureBox3 = new PictureBox();
+            button1 = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
@@ -38,9 +39,9 @@
             // 
             // pictureBox1
             // 
-            pictureBox1.Location = new Point(409, 12);
+            pictureBox1.Location = new Point(375, 51);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(379, 289);
+            pictureBox1.Size = new Size(413, 250);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
@@ -55,17 +56,28 @@
             // 
             // pictureBox3
             // 
-            pictureBox3.Location = new Point(12, 12);
+            pictureBox3.Location = new Point(12, 51);
             pictureBox3.Name = "pictureBox3";
-            pictureBox3.Size = new Size(391, 289);
+            pictureBox3.Size = new Size(357, 250);
             pictureBox3.TabIndex = 2;
             pictureBox3.TabStop = false;
+            // 
+            // button1
+            // 
+            button1.Location = new Point(12, 12);
+            button1.Name = "button1";
+            button1.Size = new Size(212, 33);
+            button1.TabIndex = 3;
+            button1.Text = "Choose points from file";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
             // 
             // HistogramForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(button1);
             Controls.Add(pictureBox3);
             Controls.Add(pictureBox2);
             Controls.Add(pictureBox1);
@@ -82,5 +94,6 @@
         private PictureBox pictureBox1;
         private PictureBox pictureBox2;
         private PictureBox pictureBox3;
+        private Button button1;
     }
 }

@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
 using ImgLyr;
+using Microsoft.VisualBasic;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Imagesss
 {
@@ -21,15 +23,20 @@ namespace Imagesss
     public partial class Form1 : Form
     {
         private List<ImgLayer> layers = new List<ImgLayer>();
+        private float MainOpacity = 1.0f;
+        private TrackBar trackBar1;
         public Form1()
         {
             InitializeComponent();
+            this.AutoScaleMode = AutoScaleMode.Dpi;
+         
         }
 
        
 
         private void AddImg()
         {
+          
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             { 
                 openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
@@ -44,14 +51,15 @@ namespace Imagesss
                        
                         Bitmap img = new Bitmap(file);
                         string imgname = Path.GetFileNameWithoutExtension(file);
-                        if (imgname.Length > 15)
+                        if (imgname.Length > 25)
                         {
-                            imgname = imgname.Substring(0, 12) + "...";
+                            imgname = imgname.Substring(0, 22) + "...";
                         }
                         var lr = new ImgLayer(img, imgname);
                         layers.Add(lr);
                         AddLayerToUI(lr);
                     }
+                    MainImgOpacity();
                     ImgAdapt();
                     ProceedOperation();
                 }
@@ -60,9 +68,60 @@ namespace Imagesss
            
         }
 
+       private void MainImgOpacity()
+        {
+            if (trackBar1 != null) return;
+            trackBar1 = new TrackBar
+            {
+                Minimum = 0,
+                Maximum = 100,
+                Value = 100,
+                TickFrequency = 10,
+                LargeChange = 10,
+                SmallChange = 5,
+                Location = new Point(12, 512),
+                Width = 300,
+                Visible = true
+            };
+            Label MainOpcLbl = new Label
+            {
+                Text = "100%",
+                AutoSize = true,
+                Location = new Point(trackBar1.Width+20, 512),
+                Visible = true
+            };
+            trackBar1.Scroll += (sender, e) =>
+            {
+                int opacity = trackBar1.Value;
+                MainOpacity = opacity / 100.0f;
+                MainOpcLbl.Text = $"{opacity}%";
+                ProceedOperation();
+                //MessageBox.Show($"ѕрозрачность: {layer.Opacity}%");
+            };
+            
+            Button histBut = new Button
+            {
+                Text = "Show Histogram",
+                Location = new Point(trackBar1.Width + 60, 512),
+                Width = 200
+            };
+            histBut.Click += (sender, e) => HistogramWindow(sender, e, (Bitmap)pictureBox1.Image);
+             Button binBut = new Button
+            {
+                Text = "Show binarization",
+                Location=new Point(trackBar1.Width + 260, 512),
+                Width = 200
+            };
+            binBut.Click += (sender, e) => BinWindow(sender, e, (Bitmap)pictureBox1.Image);
+            this.Controls.Add(trackBar1);
+            this.Controls.Add(MainOpcLbl);
+            this.Controls.Add(histBut);
+            this.Controls.Add(binBut);
+        }
+
         private void AddLayerToUI(ImgLayer layer)
         {
-            Panel panel = new Panel {Width = 210, Height = 350, Dock = DockStyle.Top, BorderStyle = BorderStyle.FixedSingle };
+            Panel panel = new Panel {Width = 210, Height = 360, Dock = DockStyle.Top, BorderStyle = BorderStyle.FixedSingle };
 
             PictureBox pictureBox = new PictureBox
             {
@@ -131,7 +190,7 @@ namespace Imagesss
                 Location = new Point(5, 300),
                 Width = 200
             };
-            histogramButton.Click += (sender, e) => HistogramWindow(sender, e, pictureBox);
+            histogramButton.Click += (sender, e) => HistogramWindow(sender, e, layer.Image);
 
             Button binButton = new Button
             {
@@ -139,7 +198,7 @@ namespace Imagesss
                 Location=new Point(5, 330),
                 Width = 200
             };
-            binButton.Click += (sender, e) => BinWindow(sender, e, pictureBox);
+            binButton.Click += (sender, e) => BinWindow(sender, e, layer.Image);
             panel.Controls.Add(pictureBox);
             panel.Controls.Add(label);
             panel.Controls.Add(ChannelList);
@@ -150,9 +209,9 @@ namespace Imagesss
             panel.Controls.Add(binButton);
             lyrBox2.Controls.Add(panel);
         }
-        private void BinWindow(object sender, EventArgs e, PictureBox pb)
+        private void BinWindow(object sender, EventArgs e, Bitmap pb)
         {
-            Bitmap img = new Bitmap(pb.Image);
+            Bitmap img = new Bitmap(pb);
             
                 this.Hide();
 
@@ -161,13 +220,12 @@ namespace Imagesss
 
                 binarForm.FormClosed += (s, args) => this.Show();
         }
-         private void  HistogramWindow(object sender, EventArgs e, PictureBox picturebox)
+         private void  HistogramWindow(object sender, EventArgs e, Bitmap picturebox)
         {
-            Bitmap img = new Bitmap(picturebox.Image);
+            Bitmap img = new Bitmap(picturebox);
             this.Hide();
             HistogramForm histogramForm = new HistogramForm(img);
             histogramForm.FormClosed += (s, args) => this.Show();
-            img.Dispose();
         }
         private static Bitmap Resize(Bitmap img, int nw, int nh)
         {
@@ -197,7 +255,7 @@ namespace Imagesss
             foreach (var lyr in layers)
             {
                 //lyr.Image = Resize(lyr.Image, pictureBox1.Width, pictureBox1.Height);
-                lyr.Image = Resize(lyr.Image, 1920, 1080);
+                lyr.AdaptedImg = Resize(lyr.Image, 1920, 1080);
             }
         }
         Bitmap svimg = default;
@@ -207,13 +265,13 @@ namespace Imagesss
             Bitmap res = new Bitmap(1920, 1080);
             Graphics.FromImage(res).Clear(Color.Black);
             
-            int w = layers[0].Image.Width;
-            int h = layers[0].Image.Height;
+            int w = layers[0].AdaptedImg.Width;
+            int h = layers[0].AdaptedImg.Height;
             byte[] resb = new byte[w*h*4];// *4 так как каждый пиксель=4 байта
            // for (int k = layers.Count - 1; k >= 0; k--)
            foreach (var layer in layers.AsEnumerable().Reverse())
             {
-                byte[] layb = GetImgBytes(layer.Image);
+                byte[] layb = GetImgBytes(layer.AdaptedImg);
                 float opacity = layer.Opacity;
                 var op = layer.Op;
                 var ch = layer.Channel;
@@ -223,11 +281,12 @@ namespace Imagesss
             svimg = res;
             pictureBox1.Image = res;
             
+            
         }
         protected void ApplyLayer(byte[] resultData, byte[] layerData, int w, int h, float opacity, string op, string ch)
         {
-            int l = w * h*4;
-            Parallel.For(0, l/4, i =>
+            int l = w * h;
+            Parallel.For(0, l, i =>
             {
                 int index = i * 4;// оп€ть же, пиксель 4 байта 0 1 2 3 дл€ нулевого. ’ранитс€ BGRA, а не RGBA, поэтому такие индексы)
                 byte b1 = layerData[index];
@@ -243,12 +302,12 @@ namespace Imagesss
                 byte r = Operations((byte)(r1*opacity), r2, op);
                 byte g = Operations((byte)(g1 * opacity), g2, op);
                 byte b = Operations((byte)(b1 * opacity), b2, op);
-
+                Console.WriteLine($"{i}");
 
                 resultData[index] = b;
                 resultData[index+1] = g;
                 resultData[index+2] = r;
-                resultData[index + 3] = 255; //(byte)(255*opacity);
+                resultData[index + 3] = (byte)(255*MainOpacity); //(byte)(255*opacity);
             });
         }
         private static byte[] GetImgBytes(Bitmap img)
