@@ -80,6 +80,7 @@
             // lyrBox2
             // 
             lyrBox2.AutoScroll = true;
+            lyrBox2.AutoSize = true;
             lyrBox2.Controls.Add(proButton);
             lyrBox2.Location = new Point(794, 118);
             lyrBox2.Name = "lyrBox2";
@@ -90,6 +91,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
+            AutoSize = true;
             ClientSize = new Size(1039, 569);
             Controls.Add(lyrBox2);
             Controls.Add(saveButton);
@@ -100,6 +102,7 @@
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             lyrBox2.ResumeLayout(false);
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion

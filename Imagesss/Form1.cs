@@ -1,3 +1,4 @@
+using System.CodeDom.Compiler;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -113,6 +114,25 @@ namespace Imagesss
                 Width = 200
             };
             binBut.Click += (sender, e) => BinWindow(sender, e, (Bitmap)pictureBox1.Image);
+
+            Button filBut = new Button
+            {
+                Text = "Show filtration",
+                Location = new Point(trackBar1.Width + 60, 535),
+                Width = 200
+            };
+            filBut.Click += (sender, e) => ResWindow(sender, e, (Bitmap)pictureBox1.Image);
+
+            Button furBut = new Button
+            {
+                Text = "Show furier",
+                Location = new Point(trackBar1.Width + 260, 535),
+                Width = 200
+            };
+            furBut.Click += (sender, e) => FuraWindow(sender, e, (Bitmap)pictureBox1.Image);
+
+            this.Controls.Add(furBut);
+            this.Controls.Add(filBut);
             this.Controls.Add(trackBar1);
             this.Controls.Add(MainOpcLbl);
             this.Controls.Add(histBut);
@@ -121,7 +141,7 @@ namespace Imagesss
 
         private void AddLayerToUI(ImgLayer layer)
         {
-            Panel panel = new Panel {Width = 210, Height = 360, Dock = DockStyle.Top, BorderStyle = BorderStyle.FixedSingle };
+            Panel panel = new Panel {Width = 210, Height = 430, Dock = DockStyle.Top, BorderStyle = BorderStyle.FixedSingle };
 
             PictureBox pictureBox = new PictureBox
             {
@@ -199,6 +219,24 @@ namespace Imagesss
                 Width = 200
             };
             binButton.Click += (sender, e) => BinWindow(sender, e, layer.Image);
+
+            var VostBut = new Button
+            {
+                Text = "Restore",
+                Location = new Point(5, 360),
+                Width = 200
+            };
+            VostBut.Click += (sender, e) => ResWindow(sender, e, layer.Image);
+
+
+            var furaBut = new Button
+            {
+                Text = "Furier",
+                Location = new Point(5, 390),
+                Width = 200
+            };
+            furaBut.Click += (sender, e) => FuraWindow(sender, e, layer.Image);
+
             panel.Controls.Add(pictureBox);
             panel.Controls.Add(label);
             panel.Controls.Add(ChannelList);
@@ -207,8 +245,29 @@ namespace Imagesss
             panel.Controls.Add(opacityLabel);
             panel.Controls.Add(histogramButton);
             panel.Controls.Add(binButton);
+            panel.Controls.Add(VostBut);
+            panel.Controls.Add(furaBut);
             lyrBox2.Controls.Add(panel);
         }
+
+        private void FuraWindow(object sender, EventArgs e, Bitmap img)
+        {
+            this.Hide();
+
+            FuraForm fura = new FuraForm(img);
+
+            fura.FormClosed += (s, args) => this.Show();
+        }
+
+        private void ResWindow(object sender, EventArgs e, Bitmap img)
+        {
+            this.Hide();
+
+            Form2 resForm = new Form2(img);
+
+            resForm.FormClosed += (s, args) => this.Show();
+        }
+
         private void BinWindow(object sender, EventArgs e, Bitmap pb)
         {
             Bitmap img = new Bitmap(pb);
@@ -371,7 +430,11 @@ namespace Imagesss
 
         private void SaveImg()
         {
-            svimg = Resize(svimg, 1920, 1080);
+            string inputw = Interaction.InputBox("Write down width", "Input", "1920");
+            string inputh = Interaction.InputBox("Write down height, ", "Input", "1080");
+            int.TryParse(inputw, out int w);
+            int.TryParse(inputh, out int h);
+            svimg = Resize(svimg, w, h);
             using SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
             saveFileDialog.Filter = "PNG Image|*.png";
